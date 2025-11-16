@@ -1,5 +1,12 @@
 source "https://rubygems.org"
 
+
+#additional gems for rails 8.1.1
+gem "rack-cors"
+gem "devise"
+gem "devise-jwt"
+gem "jsonapi-serializer"
+
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
 gem "rails", "~> 8.1.1"
 # Use postgresql as the database for Active Record
