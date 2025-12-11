@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "frontend_react_native",
-    "slug": "frontend_react_native",
+    "name": "frontend",
+    "slug": "frontend",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "frontendreactnative",
+    "scheme": "frontend",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -38,8 +38,7 @@
             "backgroundColor": "#000000"
           }
         }
-      ],
-      "expo-secure-store"
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
