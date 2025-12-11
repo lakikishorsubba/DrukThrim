@@ -5,7 +5,7 @@ export default function AboutScreen() {
     <View
       style={styles.container}
     >
-      <Text>this is about sections</Text>
+      <Text>this is about section</Text>
     </View>
   );
 }
