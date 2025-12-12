@@ -1,6 +1,7 @@
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from "react-native";
 import React, { useState } from "react";
 import { useRouter } from "expo-router";
+import * as SecureStore from "expo-secure-store";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -19,22 +20,27 @@ export default function LoginScreen() {
       const res = await fetch("http://10.197.242.246:3000/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          user: { email, password }
-        }),
+        body: JSON.stringify({ user: { email, password } }),
       });
 
       const data = await res.json();
       setLoading(false);
 
       if (res.ok) {
-        Alert.alert("Success", "Logged in!");
-        router.replace("/(tabs)");
+        // Save JWT securely
+        const token = res.headers.get("Authorization")?.split(" ").pop(); // Devise JWT usually returns in headers
+        if (token) {
+          await SecureStore.setItemAsync("jwt_token", token);
+        }
+
+        Alert.alert("Success", "Logged in successfully!");
+        router.replace("/(tabs)"); // redirect to tabs
       } else {
-        Alert.alert("Login Failed", data.message || "Invalid credentials");
+        Alert.alert("Login Failed", data.status?.message || "Invalid credentials");
       }
     } catch (e) {
       setLoading(false);
+      console.error(e);
       Alert.alert("Error", "Server not reachable");
     }
   };
@@ -47,6 +53,8 @@ export default function LoginScreen() {
         style={styles.input}
         placeholder="Email"
         placeholderTextColor="#888"
+        keyboardType="email-address"
+        autoCapitalize="none"
         value={email}
         onChangeText={setEmail}
       />
@@ -60,12 +68,8 @@ export default function LoginScreen() {
         onChangeText={setPassword}
       />
 
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        {loading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.buttonText}>Login</Text>
-        )}
+      <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
+        {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Login</Text>}
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => router.push("/signup")}>
@@ -92,7 +96,7 @@ const styles = StyleSheet.create({
     height: 48,
     borderWidth: 1,
     borderColor: "#ccc",
-    borderRadius: 14,
+    borderRadius: 16,
     paddingHorizontal: 12,
     marginBottom: 16,
     fontSize: 16,
@@ -101,7 +105,7 @@ const styles = StyleSheet.create({
   button: {
     height: 48,
     backgroundColor: "#007bff",
-    borderRadius: 14,
+    borderRadius: 16,
     justifyContent: "center",
     alignItems: "center",
     marginTop: 8,

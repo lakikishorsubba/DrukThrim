@@ -1,28 +1,31 @@
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import * as SecureStore from "expo-secure-store";
 import React from "react";
 
 export default function Profile() {
   const router = useRouter();
-
-  // Direct IP of your Rails backend
   const API_URL = "http://10.197.242.246:3000";
-
-  // Hardcoded token for testing (replace with real token if needed)
-  const TOKEN = "YOUR_JWT_TOKEN_HERE";
 
   const handleLogout = async () => {
     try {
+      const token = await SecureStore.getItemAsync("jwt_token");
+      if (!token) {
+        router.replace("/login");
+        return;
+      }
+
       const res = await fetch(`${API_URL}/logout`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${TOKEN}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
       if (res.ok) {
+        await SecureStore.deleteItemAsync("jwt_token");
         Alert.alert("Success", "Logged out successfully!");
         router.replace("/login");
       } else {
@@ -36,7 +39,7 @@ export default function Profile() {
 
   return (
     <View style={styles.container}>
-      {/* User Info */}
+      {/* Minimal User Info */}
       <View style={styles.userInfo}>
         <Ionicons name="person-circle" size={80} color="#000" />
         <Text style={styles.userName}>Tashi Dorji</Text>
@@ -53,27 +56,10 @@ export default function Profile() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#f9f9f9",
-    paddingHorizontal: 16,
-  },
-  userInfo: {
-    alignItems: "center",
-    marginBottom: 40,
-  },
-  userName: {
-    fontSize: 22,
-    fontWeight: "600",
-    marginTop: 8,
-  },
-  userEmail: {
-    fontSize: 16,
-    color: "#555",
-    marginTop: 4,
-  },
+  container: { flex: 1, justifyContent: "center", alignItems: "center", padding: 16 },
+  userInfo: { alignItems: "center", marginBottom: 40 },
+  userName: { fontSize: 22, fontWeight: "600", marginTop: 8 },
+  userEmail: { fontSize: 16, color: "#555", marginTop: 4 },
   logoutButton: {
     flexDirection: "row",
     backgroundColor: "#ff4d4d",
@@ -82,9 +68,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  logoutText: {
-    color: "#fff",
-    fontWeight: "600",
-    fontSize: 16,
-  },
+  logoutText: { color: "#fff", fontWeight: "600", fontSize: 16 },
 });
