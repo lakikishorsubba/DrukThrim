@@ -1,20 +1,53 @@
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 export default function Profile() {
   const router = useRouter();
   const API_URL = "http://10.197.242.246:3000";
 
+  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch user info on mount
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const token = await SecureStore.getItemAsync("jwt_token");
+        if (!token) return router.replace("/login");
+
+        const res = await fetch(`${API_URL}/current_user`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          setUser({ name: data.name, email: data.email });
+        } else {
+          Alert.alert("Error", "Failed to load user info");
+        }
+      } catch (e) {
+        console.error(e);
+        Alert.alert("Error", "Server not reachable.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
+  // Logout handler
   const handleLogout = async () => {
     try {
       const token = await SecureStore.getItemAsync("jwt_token");
-      if (!token) {
-        router.replace("/login");
-        return;
-      }
+      if (!token) return router.replace("/login");
 
       const res = await fetch(`${API_URL}/logout`, {
         method: "DELETE",
@@ -37,13 +70,20 @@ export default function Profile() {
     }
   };
 
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color="#007bff" />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
-      {/* Card */}
       <View style={styles.card}>
         <Ionicons name="person-circle" size={80} color="#007bff" />
-        <Text style={styles.userName}>Tashi Dorji</Text>
-        <Text style={styles.userEmail}>tashi.dorji@example.bt</Text>
+        <Text style={styles.userName}>{user?.name || "Unknown User"}</Text>
+        <Text style={styles.userEmail}>{user?.email || "example@email.com"}</Text>
 
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Ionicons name="log-out-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
