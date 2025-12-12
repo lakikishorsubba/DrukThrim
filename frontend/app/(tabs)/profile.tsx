@@ -39,34 +39,46 @@ export default function Profile() {
 
   return (
     <View style={styles.container}>
-      {/* Minimal User Info */}
-      <View style={styles.userInfo}>
-        <Ionicons name="person-circle" size={80} color="#000" />
+      {/* Card */}
+      <View style={styles.card}>
+        <Ionicons name="person-circle" size={80} color="#007bff" />
         <Text style={styles.userName}>Tashi Dorji</Text>
         <Text style={styles.userEmail}>tashi.dorji@example.bt</Text>
-      </View>
 
-      {/* Logout Button */}
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <Ionicons name="log-out-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
-        <Text style={styles.logoutText}>Log Out</Text>
-      </TouchableOpacity>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Ionicons name="log-out-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
+          <Text style={styles.logoutText}>Log Out</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: "center", alignItems: "center", padding: 16 },
-  userInfo: { alignItems: "center", marginBottom: 40 },
-  userName: { fontSize: 22, fontWeight: "600", marginTop: 8 },
-  userEmail: { fontSize: 16, color: "#555", marginTop: 4 },
+  container: { flex: 1, justifyContent: "center", alignItems: "center", padding: 16, backgroundColor: "#f0f2f5" },
+  card: {
+    width: "90%",
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 24,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  userName: { fontSize: 22, fontWeight: "600", marginTop: 12 },
+  userEmail: { fontSize: 16, color: "#555", marginTop: 4, marginBottom: 20 },
   logoutButton: {
     flexDirection: "row",
     backgroundColor: "#ff4d4d",
-    padding: 14,
-    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
+    marginTop: 16,
   },
   logoutText: { color: "#fff", fontWeight: "600", fontSize: 16 },
 });
