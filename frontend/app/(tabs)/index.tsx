@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView } from "react-native";
 export default function Index() {
   return (
     <ScrollView style={styles.container}>
-      {/* Dashboard Summary */}
+
       <View style={styles.summaryContainer}>
 
         <View style={styles.cardsRow}>
@@ -66,7 +66,6 @@ export default function Index() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#D6F4ED",
   },
   summaryContainer: {
     padding: 16,

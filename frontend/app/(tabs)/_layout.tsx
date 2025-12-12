@@ -5,20 +5,16 @@ export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: "#70B2B2",
-        tabBarInactiveTintColor: "#99A0B0",
+        tabBarActiveTintColor: "#000", // active tab text in black
+        tabBarInactiveTintColor: "#999", // inactive tab text in gray
         tabBarStyle: {
-          backgroundColor: "#D6F4ED",
           paddingBottom: 6,
           paddingTop: 6,
           height: 60,
           borderTopWidth: 0.5,
           borderTopColor: "#dcdcdc",
         },
-        headerStyle: {
-          backgroundColor: "#70B2B2",
-        },
-        headerTintColor: "#fff",
+        headerTintColor: "#000", // header text in black
         headerTitleStyle: {
           fontSize: 20,
           fontWeight: "600",
@@ -36,16 +32,36 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="about"
+        name="search"
         options={{
-          headerTitle: "About DrukThrim",
-          tabBarLabel: "About",
+          headerTitle: "Search",
+          tabBarLabel: "Search",
+          tabBarIcon: ({ focused, color }) => (
+            <Ionicons name={focused ? "search" : "search-outline"} size={24} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="notifications"
+        options={{
+          headerTitle: "Notifications",
+          tabBarLabel: "Notifications",
           tabBarIcon: ({ focused, color }) => (
             <Ionicons
-              name={focused ? "information-circle" : "information-circle-outline"}
+              name={focused ? "notifications" : "notifications-outline"}
               size={24}
               color={color}
             />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          headerTitle: "Profile",
+          tabBarLabel: "Profile",
+          tabBarIcon: ({ focused, color }) => (
+            <Ionicons name={focused ? "person" : "person-outline"} size={24} color={color} />
           ),
         }}
       />

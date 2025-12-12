@@ -10,17 +10,27 @@ export default function RootLayout() {
       <StatusBar style="dark" />
       <Stack>
         <Stack.Screen
+          name="login"
+          options={{
+            headerShown: false,
+          }}
+        />
+
+        <Stack.Screen
+          name="signup"
+          options={{
+            headerShown: false,
+          }}
+        />
+
+        <Stack.Screen
           name="(tabs)"
           options={{
             headerShown: false,
           }}
         />
-        <Stack.Screen
-          name="+not-found"
-          options={{
-            headerTitle: "Oops! Not found",
-          }}
-        />
+
+        <Stack.Screen name="+not-found" />
       </Stack>
     </>
   );
