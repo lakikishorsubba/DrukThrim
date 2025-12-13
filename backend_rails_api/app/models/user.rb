@@ -14,9 +14,8 @@ class User < ApplicationRecord
   after_initialize :set_default_role, if: :new_record?
 
   def set_default_role
-    self.role ||= "citizen"
+    self.role ||= 'citizen'
   end
-
 
   # Name
   validates :name,
@@ -29,13 +28,12 @@ class User < ApplicationRecord
             uniqueness: true,
             format: { with: URI::MailTo::EMAIL_REGEXP }
 
-  # Password – Devise enforces presence; we enforce length
+  # Password
   validates :password,
             length: { minimum: 6 },
-            if: -> { new_record? || !password.nil? }
+            if: -> { new_record? || password.present? }
 
-  # Role (optional)
+  # Role
   validates :role,
-            inclusion: { in: %w[citizen admin], message: "is invalid" }
-
+            inclusion: { in: %w[citizen admin] }
 end

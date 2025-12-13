@@ -3,35 +3,46 @@
 class Users::SessionsController < Devise::SessionsController
   respond_to :json
 
-  # LOGIN
+  # POST /login
   def create
-    user = User.find_by(email: params[:user][:email])
+    user = User.find_by(email: params.dig(:user, :email))
 
-    if user && user.valid_password?(params[:user][:password])
-      sign_in(user)
+    if user&.valid_password?(params.dig(:user, :password))
+      # IMPORTANT: do NOT store session in API/JWT mode
+      sign_in(user, store: false)
+
+      token = request.env['warden-jwt_auth.token']
+
+      response.set_header(
+        'Authorization',
+        "Bearer #{token}"
+      )
 
       render json: {
         status: 200,
-        message: "Logged in successfully.",
+        message: 'Logged in successfully.',
         data: UserSerializer.new(user).serializable_hash[:data][:attributes]
       }, status: :ok
-
     else
       render json: {
         status: 401,
-        message: "Invalid email or password."
+        message: 'Invalid email or password.'
       }, status: :unauthorized
     end
   end
 
-  # LOGOUT
+  # DELETE /logout
   def respond_to_on_destroy
-    token = request.headers['Authorization']&.split(' ')&.last
-
-    if token
-      render json: { status: 200, message: "Logged out successfully." }, status: :ok
+    if request.headers['Authorization'].present?
+      render json: {
+        status: 200,
+        message: 'Logged out successfully.'
+      }, status: :ok
     else
-      render json: { status: 401, message: "No active session." }, status: :unauthorized
+      render json: {
+        status: 401,
+        message: 'No active session.'
+      }, status: :unauthorized
     end
   end
 end
