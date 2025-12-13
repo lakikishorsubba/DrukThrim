@@ -1,35 +1,25 @@
 # frozen_string_literal: true
+
 class Users::RegistrationsController < Devise::RegistrationsController
-  include RackSessionsFix
   respond_to :json
 
   private
 
-  # Permit additional parameters for signup
   def sign_up_params
-    params.require(:user).permit(:email, :password, :password_confirmation, :name, :role)
+    params.require(:user).permit(:name, :email, :password, :password_confirmation)
   end
 
-  # Permit additional parameters for account update
-  def account_update_params
-    params.require(:user).permit(:email, :password, :password_confirmation, :current_password, :name, :role)
-  end
-
-  # Default role to 'citizen' if not provided
-  def build_resource(hash = {})
-    hash[:role] ||= 'citizen'
-    super(hash)
-  end
-
-  def respond_with(current_user, _opts = {})
+  def respond_with(resource, _opts = {})
     if resource.persisted?
       render json: {
-        status: { code: 200, message: 'Signed up successfully.' },
-        data: UserSerializer.new(current_user).serializable_hash[:data][:attributes]
-      }
+        status: 200,
+        message: 'Signed up successfully.',
+        data: UserSerializer.new(resource).serializable_hash[:data][:attributes]
+      }, status: :ok
     else
       render json: {
-        status: { message: "User couldn't be created successfully. #{current_user.errors.full_messages.to_sentence}" }
+        status: 422,
+        errors: resource.errors.full_messages
       }, status: :unprocessable_entity
     end
   end

@@ -1,4 +1,4 @@
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
 import React, { useState } from "react";
 import { useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
@@ -9,10 +9,13 @@ export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleLogin = async () => {
+    setError("");
+
     if (!email || !password) {
-      return Alert.alert("Error", "Please fill all fields");
+      return setError("Please fill all fields");
     }
 
     setLoading(true);
@@ -27,21 +30,18 @@ export default function LoginScreen() {
       setLoading(false);
 
       if (res.ok) {
-        // Save JWT securely
-        const token = res.headers.get("Authorization")?.split(" ").pop(); // Devise JWT usually returns in headers
+        const token = res.headers.get("Authorization")?.split(" ").pop();
         if (token) {
           await SecureStore.setItemAsync("jwt_token", token);
         }
-
-        Alert.alert("Success", "Logged in successfully!");
-        router.replace("/(tabs)"); // redirect to tabs
+        router.replace("/(tabs)");
       } else {
-        Alert.alert("Login Failed", data.status?.message || "Invalid credentials");
+        setError(data.status?.message || "Invalid email or password");
       }
     } catch (e) {
       setLoading(false);
       console.error(e);
-      Alert.alert("Error", "Server not reachable");
+      setError("Server not reachable");
     }
   };
 
@@ -68,13 +68,18 @@ export default function LoginScreen() {
         onChangeText={setPassword}
       />
 
+      {error ? <Text style={styles.error}>{error}</Text> : null}
+
       <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
         {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Login</Text>}
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => router.push("/signup")}>
-        <Text style={styles.link}>Create an Account</Text>
-      </TouchableOpacity>
+      {/* Toggle to Register */}
+      <View style={styles.toggleContainer}>
+        <TouchableOpacity onPress={() => router.push("/signup")}>
+              <Text style={styles.link}>Don't have account? Register</Text>
+              </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -102,6 +107,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     backgroundColor: "#f8f8f8",
   },
+  error: {
+    color: "red",
+    marginBottom: 12,
+    fontSize: 14,
+    marginLeft: 4,
+  },
   button: {
     height: 48,
     backgroundColor: "#007bff",
@@ -115,10 +126,18 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "600",
   },
-  link: {
+  toggleContainer: {
     marginTop: 16,
-    fontSize: 16,
-    color: "#007bff",
-    textAlign: "center",
+    alignItems: "center",
   },
+  toggleText: {
+    fontSize: 16,
+    color: "#444",
+  },
+  toggleLink: {
+    color: "#007bff",
+    textDecorationLine: "underline",
+    fontWeight: "600",
+  },
+  link: { marginTop: 18, fontSize: 16, color: "#007bff", textAlign: "center" },
 });

@@ -10,23 +10,25 @@ export default function SignupScreen() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Replace with your real backend URL
   const API_URL = "http://10.197.242.246:3000/signup";
 
+  const validateForm = () => {
+    if (name.length < 2) return "Name must be at least 2 characters";
+    if (!email.includes("@")) return "Invalid email format";
+    if (password.length < 6) return "Password must be at least 6 characters";
+    return null;
+  };
+
   const handleSignup = async () => {
-    if (!name || !email || !password) {
-      return Alert.alert("Error", "Please fill all fields");
-    }
+    const err = validateForm();
+    if (err) return Alert.alert("Error", err);
 
     setLoading(true);
-
     try {
       const res = await fetch(API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          user: { name, email, password },
-        }),
+        body: JSON.stringify({ user: { name, email, password } }),
       });
 
       const data = await res.json();
@@ -36,7 +38,7 @@ export default function SignupScreen() {
         Alert.alert("Success", "Account created successfully!");
         router.replace("/login");
       } else {
-        Alert.alert("Signup Failed", data.message || "Could not create account");
+        Alert.alert("Signup Failed", data.status?.message || "Could not create account");
       }
     } catch (error) {
       setLoading(false);
@@ -48,31 +50,9 @@ export default function SignupScreen() {
     <View style={styles.container}>
       <Text style={styles.title}>Create Account</Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Full Name"
-        placeholderTextColor="#777"
-        value={name}
-        onChangeText={setName}
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        placeholderTextColor="#777"
-        autoCapitalize="none"
-        value={email}
-        onChangeText={setEmail}
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        placeholderTextColor="#777"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
+      <TextInput style={styles.input} placeholder="Full Name" value={name} onChangeText={setName} />
+      <TextInput style={styles.input} placeholder="Email" autoCapitalize="none" value={email} onChangeText={setEmail} />
+      <TextInput style={styles.input} placeholder="Password" secureTextEntry value={password} onChangeText={setPassword} />
 
       <TouchableOpacity style={styles.button} onPress={handleSignup} disabled={loading}>
         {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Sign Up</Text>}
@@ -86,18 +66,8 @@ export default function SignupScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    paddingHorizontal: 24,
-    backgroundColor: "#fff",
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "700",
-    marginBottom: 32,
-    textAlign: "center",
-  },
+  container: { flex: 1, justifyContent: "center", padding: 24, backgroundColor: "#fff" },
+  title: { fontSize: 28, fontWeight: "700", marginBottom: 32, textAlign: "center" },
   input: {
     height: 48,
     borderWidth: 1,
@@ -105,8 +75,6 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     paddingHorizontal: 14,
     marginBottom: 16,
-    fontSize: 16,
-    backgroundColor: "#f8f8f8",
   },
   button: {
     height: 48,
@@ -114,17 +82,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 6,
   },
-  buttonText: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "600",
-  },
-  link: {
-    marginTop: 18,
-    fontSize: 16,
-    color: "#007bff",
-    textAlign: "center",
-  },
+  buttonText: { color: "#fff", fontSize: 18, fontWeight: "600" },
+  link: { marginTop: 18, fontSize: 16, color: "#007bff", textAlign: "center" },
 });
