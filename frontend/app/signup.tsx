@@ -15,16 +15,17 @@ export default function SignupScreen() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordConfirmation, setPasswordConfirmation] = useState(""); // ✅ new state
   const [loading, setLoading] = useState(false);
 
   // field-specific error states
-  const [errors, setErrors] = useState({ name: "", email: "", password: "", server: "" });
+  const [errors, setErrors] = useState({ name: "", email: "", password: "", password_confirmation: "", server: "" }); // ✅ added password_confirmation
 
   const API_URL = "http://10.197.242.246:3000/signup";
 
   const validateForm = () => {
     let valid = true;
-    setErrors({ name: "", email: "", password: "", server: "" });
+    setErrors({ name: "", email: "", password: "", password_confirmation: "", server: "" });
 
     if (name.trim().length < 2) {
       setErrors(prev => ({ ...prev, name: "Name must be at least 2 characters" }));
@@ -38,6 +39,10 @@ export default function SignupScreen() {
       setErrors(prev => ({ ...prev, password: "Password must be at least 6 characters" }));
       valid = false;
     }
+    if (password !== passwordConfirmation) { // ✅ frontend confirmation check
+      setErrors(prev => ({ ...prev, password_confirmation: "Passwords do not match" }));
+      valid = false;
+    }
     return valid;
   };
 
@@ -49,7 +54,14 @@ export default function SignupScreen() {
       const res = await fetch(API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user: { name, email, password } }),
+        body: JSON.stringify({ 
+          user: { 
+            name, 
+            email, 
+            password, 
+            password_confirmation: passwordConfirmation // ✅ send to backend
+          } 
+        }),
       });
 
       const data = await res.json();
@@ -59,7 +71,7 @@ export default function SignupScreen() {
         router.replace("/login");
       } else if (data.errors) {
         // map backend errors to field
-        const fieldErrors = { name: "", email: "", password: "", server: "" };
+        const fieldErrors = { name: "", email: "", password: "", password_confirmation: "", server: "" };
         Object.keys(data.errors).forEach(field => {
           fieldErrors[field] = data.errors[field].join("\n");
         });
@@ -103,6 +115,16 @@ export default function SignupScreen() {
       />
       {errors.password ? <Text style={styles.error}>{errors.password}</Text> : null}
 
+      {/* ✅ Password Confirmation Field */}
+      <TextInput
+        style={styles.input}
+        placeholder="Confirm Password"
+        secureTextEntry
+        value={passwordConfirmation}
+        onChangeText={setPasswordConfirmation}
+      />
+      {errors.password_confirmation ? <Text style={styles.error}>{errors.password_confirmation}</Text> : null}
+
       {errors.server ? <Text style={styles.error}>{errors.server}</Text> : null}
 
       <TouchableOpacity
@@ -126,6 +148,7 @@ export default function SignupScreen() {
   );
 }
 
+// Styles remain unchanged
 const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: "center", padding: 24, backgroundColor: "#fff" },
   title: { fontSize: 28, fontWeight: "700", marginBottom: 32, textAlign: "center" },

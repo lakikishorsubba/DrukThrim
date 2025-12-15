@@ -1,16 +1,12 @@
-# frozen_string_literal: true
-
 class Users::SessionsController < Devise::SessionsController
   respond_to :json
 
-  # POST /login
   def create
     user = User.find_by(email: params.dig(:user, :email))
 
     if user&.valid_password?(params.dig(:user, :password))
       # IMPORTANT: do NOT store session in API/JWT mode
       sign_in(user, store: false)
-
       token = request.env['warden-jwt_auth.token']
 
       response.set_header(

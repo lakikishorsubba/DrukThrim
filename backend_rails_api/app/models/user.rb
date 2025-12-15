@@ -31,6 +31,7 @@ class User < ApplicationRecord
   # Password
   validates :password,
             length: { minimum: 6 },
+            confirmation: true,
             if: -> { new_record? || password.present? }
 
   # Role

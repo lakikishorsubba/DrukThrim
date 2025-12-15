@@ -77,8 +77,10 @@ export default function LoginScreen() {
       {/* Toggle to Register */}
       <View style={styles.toggleContainer}>
         <TouchableOpacity onPress={() => router.push("/signup")}>
-              <Text style={styles.link}>Don't have account? Register</Text>
-              </TouchableOpacity>
+               <Text style={styles.link}>
+                 Not yet registered? <Text style={styles.linkUnderline}>Register</Text>
+               </Text>
+             </TouchableOpacity>
       </View>
     </View>
   );
@@ -139,5 +141,6 @@ const styles = StyleSheet.create({
     textDecorationLine: "underline",
     fontWeight: "600",
   },
-  link: { marginTop: 18, fontSize: 16, color: "#007bff", textAlign: "center" },
+  link: { marginTop: 18, fontSize: 16, color: "#444", textAlign: "center" },
+  linkUnderline: { color: "#007bff", textDecorationLine: "underline", fontWeight: "600" },
 });
