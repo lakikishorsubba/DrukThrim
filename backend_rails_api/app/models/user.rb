@@ -7,6 +7,7 @@ class User < ApplicationRecord
          :registerable,
          :recoverable,
          :rememberable,
+         :lockable,
          :validatable,
          :jwt_authenticatable,
          jwt_revocation_strategy: self

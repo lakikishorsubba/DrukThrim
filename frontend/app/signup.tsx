@@ -15,11 +15,17 @@ export default function SignupScreen() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [passwordConfirmation, setPasswordConfirmation] = useState(""); // ✅ new state
+  const [passwordConfirmation, setPasswordConfirmation] = useState("");
   const [loading, setLoading] = useState(false);
 
   // field-specific error states
-  const [errors, setErrors] = useState({ name: "", email: "", password: "", password_confirmation: "", server: "" }); // ✅ added password_confirmation
+  const [errors, setErrors] = useState({
+    name: "",
+    email: "",
+    password: "",
+    password_confirmation: "",
+    server: "",
+  });
 
   const API_URL = "http://10.197.242.246:3000/signup";
 
@@ -39,7 +45,7 @@ export default function SignupScreen() {
       setErrors(prev => ({ ...prev, password: "Password must be at least 6 characters" }));
       valid = false;
     }
-    if (password !== passwordConfirmation) { // ✅ frontend confirmation check
+    if (password !== passwordConfirmation) {
       setErrors(prev => ({ ...prev, password_confirmation: "Passwords do not match" }));
       valid = false;
     }
@@ -54,33 +60,43 @@ export default function SignupScreen() {
       const res = await fetch(API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          user: { 
-            name, 
-            email, 
-            password, 
-            password_confirmation: passwordConfirmation // ✅ send to backend
-          } 
+        body: JSON.stringify({
+          user: { name, email, password, password_confirmation: passwordConfirmation },
         }),
       });
+      
+      // Safe JSON parsing to prevent 'Unexpected character: <' error
+    let data;
+    const contentType = res.headers.get("content-type");
+    if (contentType && contentType.includes("application/json")) {
+      data = await res.json();  
+    } else {
+    const text = await res.text();
+    console.error("Server response is not JSON:", text);
+    setErrors(prev => ({ ...prev, server: "Server returned invalid response" }));
+    setLoading(false);
+    return;
+  }
 
-      const data = await res.json();
       setLoading(false);
 
       if (res.ok) {
         router.replace("/login");
       } else if (data.errors) {
-        // map backend errors to field
+        // Map backend errors to fields
         const fieldErrors = { name: "", email: "", password: "", password_confirmation: "", server: "" };
         Object.keys(data.errors).forEach(field => {
-          fieldErrors[field] = data.errors[field].join("\n");
+          if (field in fieldErrors) {
+            fieldErrors[field as keyof typeof fieldErrors] = data.errors[field].join("\n");
+          }
         });
         setErrors(fieldErrors);
       } else {
-        setErrors(prev => ({ ...prev, server: "Could not create account" }));
+        setErrors(prev => ({ ...prev, server: data.status?.message || "Could not create account" }));
       }
     } catch (error) {
       setLoading(false);
+      console.error(error);
       setErrors(prev => ({ ...prev, server: "Server not reachable" }));
     }
   };
@@ -93,7 +109,10 @@ export default function SignupScreen() {
         style={styles.input}
         placeholder="Full Name"
         value={name}
-        onChangeText={setName}
+        onChangeText={text => {
+          setName(text);
+          setErrors(prev => ({ ...prev, name: "" }));
+        }}
       />
       {errors.name ? <Text style={styles.error}>{errors.name}</Text> : null}
 
@@ -102,7 +121,10 @@ export default function SignupScreen() {
         placeholder="Email"
         autoCapitalize="none"
         value={email}
-        onChangeText={setEmail}
+        onChangeText={text => {
+          setEmail(text);
+          setErrors(prev => ({ ...prev, email: "" }));
+        }}
       />
       {errors.email ? <Text style={styles.error}>{errors.email}</Text> : null}
 
@@ -111,17 +133,22 @@ export default function SignupScreen() {
         placeholder="Password"
         secureTextEntry
         value={password}
-        onChangeText={setPassword}
+        onChangeText={text => {
+          setPassword(text);
+          setErrors(prev => ({ ...prev, password: "" }));
+        }}
       />
       {errors.password ? <Text style={styles.error}>{errors.password}</Text> : null}
 
-      {/* ✅ Password Confirmation Field */}
       <TextInput
         style={styles.input}
         placeholder="Confirm Password"
         secureTextEntry
         value={passwordConfirmation}
-        onChangeText={setPasswordConfirmation}
+        onChangeText={text => {
+          setPasswordConfirmation(text);
+          setErrors(prev => ({ ...prev, password_confirmation: "" }));
+        }}
       />
       {errors.password_confirmation ? <Text style={styles.error}>{errors.password_confirmation}</Text> : null}
 
@@ -132,11 +159,7 @@ export default function SignupScreen() {
         onPress={handleSignup}
         disabled={loading}
       >
-        {loading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.buttonText}>Sign Up</Text>
-        )}
+        {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Sign Up</Text>}
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => router.push("/login")}>
