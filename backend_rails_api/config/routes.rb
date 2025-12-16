@@ -1,5 +1,5 @@
 Rails.application.routes.draw do
-  get '/current_user', to: 'current_user#show'
+  resources :projects, only: [:index, :create, :update, :destroy]
   
   devise_for :users, path: '', path_names: {
     sign_in: 'login',
@@ -11,4 +11,15 @@ Rails.application.routes.draw do
     registrations: 'users/registrations',
     
   }
+
+  namespace :users do
+    #user details routes
+    get "current_user", to: "current_user#show"
+    #profile routes
+    get  "profile",        to: "profile#show"
+    patch "profile/avatar", to: "profile#update_avatar"
+ end
+ namespace :project do
+   resources :project, only: [:index, :show, :create, :update, :destroy]
+ end
 end

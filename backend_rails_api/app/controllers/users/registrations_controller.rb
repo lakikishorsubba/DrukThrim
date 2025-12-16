@@ -13,7 +13,6 @@ class Users::RegistrationsController < Devise::RegistrationsController
         data: UserSerializer.new(resource).serializable_hash[:data][:attributes]
       }, status: :ok
     else
-      # Deduplicate error messages
       deduped_errors = resource.errors.messages.transform_values { |msgs| msgs.uniq }
 
       render json: {
