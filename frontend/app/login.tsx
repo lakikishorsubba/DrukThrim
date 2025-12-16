@@ -2,6 +2,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator 
 import React, { useState } from "react";
 import { useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
+import { Ionicons } from "@expo/vector-icons"; // 🔹 Added for eye icon
 
 interface FieldErrors {
   email: string;
@@ -17,8 +18,9 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({ email: "", password: "" });
 
+  const [showPassword, setShowPassword] = useState(false); // 🔹 Added state for password toggle
+
   const handleLogin = async () => {
-    // Clear previous errors
     setErrors({ email: "", password: "" });
 
     if (!email || !password) {
@@ -53,14 +55,12 @@ export default function LoginScreen() {
       setLoading(false);
 
       if (res.ok) {
-        // Successful login
         const token = res.headers.get("Authorization")?.split(" ").pop();
         if (token) {
           await SecureStore.setItemAsync("jwt_token", token);
         }
         router.replace("/(tabs)");
       } else if (data.errors) {
-        // Backend field errors (email/password)
         const fieldErrors: FieldErrors = { email: "", password: "" };
         Object.keys(data.errors).forEach(key => {
           if (key in fieldErrors) {
@@ -69,7 +69,6 @@ export default function LoginScreen() {
         });
         setErrors(fieldErrors);
       } else {
-        // General errors like 401 or 423
         setErrors({
           email: "",
           password: "",
@@ -101,17 +100,23 @@ export default function LoginScreen() {
       />
       {errors.email ? <Text style={styles.error}>{errors.email}</Text> : null}
 
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        placeholderTextColor="#888"
-        secureTextEntry
-        value={password}
-        onChangeText={text => {
-          setPassword(text);
-          setErrors(prev => ({ ...prev, password: "" }));
-        }}
-      />
+      {/* 🔹 Password input with toggle */}
+      <View style={styles.passwordContainer}>
+        <TextInput
+          style={styles.passwordInput}
+          placeholder="Password"
+          placeholderTextColor="#888"
+          secureTextEntry={!showPassword} // 🔹 toggle
+          value={password}
+          onChangeText={text => {
+            setPassword(text);
+            setErrors(prev => ({ ...prev, password: "" }));
+          }}
+        />
+        <TouchableOpacity onPress={() => setShowPassword(prev => !prev)} style={styles.eyeIcon}>
+          <Ionicons name={showPassword ? "eye-off" : "eye"} size={22} color="#888" />
+        </TouchableOpacity>
+      </View>
       {errors.password ? <Text style={styles.error}>{errors.password}</Text> : null}
 
       {errors.general ? <Text style={styles.error}>{errors.general}</Text> : null}
@@ -145,6 +150,28 @@ const styles = StyleSheet.create({
     backgroundColor: "#f8f8f8",
   },
   error: { color: "red", fontSize: 14, marginBottom: 12, marginLeft: 4 },
+
+  /* 🔹 Password container & input */
+  passwordContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    marginBottom: 12,
+    backgroundColor: "#f8f8f8",
+  },
+  passwordInput: {
+    flex: 1,
+    height: 48,
+    fontSize: 16,
+    color: "#000",
+  },
+  eyeIcon: {
+    padding: 6,
+  },
+
   button: {
     height: 48,
     backgroundColor: "#007bff",
@@ -155,6 +182,6 @@ const styles = StyleSheet.create({
   },
   buttonText: { color: "#fff", fontSize: 18, fontWeight: "600" },
   toggleContainer: { marginTop: 16, alignItems: "center" },
-  link: { marginTop: 18, fontSize: 16, color: "#007bff", textAlign: "center" },
+  link: { marginTop: 18, fontSize: 16, color: "#444", textAlign: "center" },
   linkUnderline: { color: "#007bff", textDecorationLine: "underline", fontWeight: "600" },
 });

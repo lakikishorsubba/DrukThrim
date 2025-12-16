@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons"; 
 
 export default function SignupScreen() {
   const router = useRouter();
@@ -17,6 +18,7 @@ export default function SignupScreen() {
   const [password, setPassword] = useState("");
   const [passwordConfirmation, setPasswordConfirmation] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   // field-specific error states
   const [errors, setErrors] = useState({
@@ -128,31 +130,47 @@ export default function SignupScreen() {
       />
       {errors.email ? <Text style={styles.error}>{errors.email}</Text> : null}
 
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        secureTextEntry
-        value={password}
-        onChangeText={text => {
-          setPassword(text);
-          setErrors(prev => ({ ...prev, password: "" }));
-        }}
-      />
+     
+      <View style={styles.passwordContainer}> {/* 🔹 added container */}
+        <TextInput
+          style={styles.passwordInput}  // 🔹 different style for container adjustment
+          placeholder="Password"
+          secureTextEntry={!showPassword} // 🔹 toggle visibility
+          value={password}
+          onChangeText={text => {
+            setPassword(text);
+            setErrors(prev => ({ ...prev, password: "" }));
+          }}
+        />
+        <TouchableOpacity
+          onPress={() => setShowPassword(prev => !prev)} // 🔹 toggle state
+          style={styles.eyeIcon}
+        >
+          <Ionicons name={showPassword ? "eye-off" : "eye"} size={22} color="#888" />
+        </TouchableOpacity>
+      </View>
       {errors.password ? <Text style={styles.error}>{errors.password}</Text> : null}
 
-      <TextInput
-        style={styles.input}
-        placeholder="Confirm Password"
-        secureTextEntry
-        value={passwordConfirmation}
-        onChangeText={text => {
-          setPasswordConfirmation(text);
-          setErrors(prev => ({ ...prev, password_confirmation: "" }));
-        }}
-      />
+      {/* Confirm Password field */}
+      <View style={styles.passwordContainer}> {/* 🔹 added container */}
+        <TextInput
+          style={styles.passwordInput}
+          placeholder="Confirm Password"
+          secureTextEntry={!showPassword} // 🔹 toggle visibility
+          value={passwordConfirmation}
+          onChangeText={text => {
+            setPasswordConfirmation(text);
+            setErrors(prev => ({ ...prev, password_confirmation: "" }));
+          }}
+        />
+        <TouchableOpacity
+          onPress={() => setShowPassword(prev => !prev)} // 🔹 toggle state
+          style={styles.eyeIcon}
+        >
+          <Ionicons name={showPassword ? "eye-off" : "eye"} size={22} color="#888" />
+        </TouchableOpacity>
+      </View>
       {errors.password_confirmation ? <Text style={styles.error}>{errors.password_confirmation}</Text> : null}
-
-      {errors.server ? <Text style={styles.error}>{errors.server}</Text> : null}
 
       <TouchableOpacity
         style={styles.button}
@@ -190,4 +208,26 @@ const styles = StyleSheet.create({
   buttonText: { color: "#fff", fontSize: 18, fontWeight: "600" },
   link: { marginTop: 18, fontSize: 16, color: "#444", textAlign: "center" },
   linkUnderline: { color: "#007bff", textDecorationLine: "underline", fontWeight: "600" },
+
+
+  passwordContainer: {
+  flexDirection: "row",
+  alignItems: "center",
+  borderWidth: 1,
+  borderColor: "#ccc",
+  borderRadius: 14,
+  paddingHorizontal: 12,
+  marginBottom: 6,
+  backgroundColor: "#f8f8f8",
+},
+passwordInput: {
+  flex: 1,
+  height: 48,
+  fontSize: 16,
+  color: "#000",
+},
+eyeIcon: {
+  padding: 6,
+},
+
 });
