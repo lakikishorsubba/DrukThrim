@@ -307,9 +307,10 @@ Devise.setup do |config|
 
   config.lock_strategy = :failed_attempts
   config.maximum_attempts = 5
-
   config.unlock_strategy = :time
   config.unlock_in = 15.minutes
+  config.last_attempt_warning = false
+  
   # ==> Configuration for :registerable
 
   # When set to false, does not sign a user in automatically after their password is
