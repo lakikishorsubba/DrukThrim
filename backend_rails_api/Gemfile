@@ -7,6 +7,13 @@ gem "devise"
 gem "devise-jwt"
 gem "jsonapi-serializer"
 
+#rspec is a testing framework for ruby
+#factory bot for setting ruby object
+#faker for generating valid but fake data
+gem "rspec-rails"
+gem "factory_bot_rails"
+gem "faker"
+
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
 gem "rails", "~> 8.1.1"
 # Use postgresql as the database for Active Record
