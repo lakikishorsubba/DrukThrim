@@ -6,6 +6,7 @@ import {
   Alert,
   ActivityIndicator,
   Image,
+  TextInput, // <-- added
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -25,6 +26,10 @@ export default function Profile() {
 
   const [loading, setLoading] = useState(true);
 
+  // NEW: state for editing name
+  const [editingName, setEditingName] = useState(false);
+  const [nameInput, setNameInput] = useState("");
+
   /*Fetch current user*/
   useEffect(() => {
     const fetchUser = async () => {
@@ -33,14 +38,13 @@ export default function Profile() {
         if (!token) return router.replace("/login");
 
         const res = await fetch(`${API_URL}/users/current_user`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         if (res.ok) {
           const data = await res.json();
           setUser(data);
+          setNameInput(data.name); // <-- initialize input
         } else {
           Alert.alert("Error", "Failed to load user info");
         }
@@ -50,7 +54,6 @@ export default function Profile() {
         setLoading(false);
       }
     };
-
     fetchUser();
   }, []);
 
@@ -89,9 +92,7 @@ export default function Profile() {
 
       const res = await fetch(`${API_URL}/users/profile/avatar`, {
         method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
 
@@ -101,6 +102,34 @@ export default function Profile() {
         Alert.alert("Success", "Profile picture updated");
       } else {
         Alert.alert("Error", "Upload failed");
+      }
+    } catch (e) {
+      Alert.alert("Error", "Server not reachable");
+    }
+  };
+
+  // NEW: update name API
+  const updateName = async () => {
+    try {
+      const token = await SecureStore.getItemAsync("jwt_token");
+      if (!token) return router.replace("/login");
+
+      const res = await fetch(`${API_URL}/users/profile/name`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ name: nameInput }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setUser((prev) => prev && { ...prev, name: data.name });
+        setEditingName(false);
+        Alert.alert("Success", "Name updated");
+      } else {
+        Alert.alert("Error", "Failed to update name");
       }
     } catch (e) {
       Alert.alert("Error", "Server not reachable");
@@ -134,7 +163,31 @@ export default function Profile() {
           )}
         </TouchableOpacity>
 
-        <Text style={styles.userName}>{user?.name}</Text>
+        {/* EDITABLE NAME */}
+
+        <View style={{ flexDirection: "row", alignItems: "center", marginTop: 12 }}>
+          {editingName ? (
+            <>
+              <TextInput
+                value={nameInput}
+                onChangeText={setNameInput}
+                style={styles.editNameInput}
+                autoFocus
+              />
+              <TouchableOpacity
+                onPress={updateName}
+                style={styles.saveButton}
+              >
+                <Text style={styles.saveButtonText}>Save</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <TouchableOpacity onPress={() => setEditingName(true)}>
+              <Text style={styles.userName}>{user?.name}</Text>
+            </TouchableOpacity>
+  )}
+</View>
+
         <Text style={styles.userEmail}>{user?.email}</Text>
 
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
@@ -148,45 +201,25 @@ export default function Profile() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#f0f2f5",
-  },
-  card: {
-    width: "90%",
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 24,
-    alignItems: "center",
-    elevation: 5,
-  },
-  avatar: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-  },
-  userName: {
-    fontSize: 22,
-    fontWeight: "600",
-    marginTop: 12,
-  },
-  userEmail: {
-    fontSize: 16,
-    color: "#555",
-    marginBottom: 20,
-  },
-  logoutButton: {
-    flexDirection: "row",
-    backgroundColor: "#ff4d4d",
-    padding: 12,
-    borderRadius: 12,
-    alignItems: "center",
-    gap: 8,
-  },
-  logoutText: {
-    color: "#fff",
-    fontWeight: "600",
-  },
+  container: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#f0f2f5" },
+  card: { width: "90%", backgroundColor: "#fff", borderRadius: 16, padding: 24, alignItems: "center", elevation: 5 },
+  avatar: { width: 90, height: 90, borderRadius: 45 },
+  userName: { fontSize: 22, fontWeight: "600", marginTop: 12 },
+  editNameInput: { fontSize: 22, fontWeight: "600", borderBottomWidth: 1, borderColor: "#007bff", marginTop: 12, width: 200, textAlign: "center" }, // <-- new
+  userEmail: { fontSize: 16, color: "#555", marginBottom: 20 },
+  logoutButton: { flexDirection: "row", backgroundColor: "#ff4d4d", padding: 12, borderRadius: 12, alignItems: "center", gap: 8 },
+  logoutText: { color: "#fff", fontWeight: "600" },
+
+  saveButton: {
+  marginLeft: 9,
+  backgroundColor: "#239e21",
+  paddingHorizontal: 8,
+  paddingVertical: 4,
+  borderRadius: 8,
+},
+saveButtonText: {
+  color: "#fff",
+  fontWeight: "600",
+  fontSize: 14,
+}
 });

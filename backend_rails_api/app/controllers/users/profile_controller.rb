@@ -20,4 +20,13 @@ class Users::ProfileController < ApplicationController
       render json: { errors: current_user.errors.full_messages }, status: :unprocessable_entity
     end
   end
+
+  def update_name
+    if current_user.update(name: params[:name])
+      render json: {name: current_user.name}
+    else
+      render json: {error: current_user.errors.full_messages},
+      status: :unprocessable_entiity
+    end
+  end
 end

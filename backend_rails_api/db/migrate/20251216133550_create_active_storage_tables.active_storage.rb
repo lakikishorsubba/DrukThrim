@@ -18,7 +18,6 @@ class CreateActiveStorageTables < ActiveRecord::Migration[7.0]
       else
         t.datetime :created_at, null: false
       end
-
       t.index [ :key ], unique: true
     end
 

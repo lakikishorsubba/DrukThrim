@@ -16,8 +16,9 @@ Rails.application.routes.draw do
     #user details routes
     get "current_user", to: "current_user#show"
     #profile routes
-    get  "profile",        to: "profile#show"
+    get  "profile", to: "profile#show"
     patch "profile/avatar", to: "profile#update_avatar"
+    patch "profile/name", to: "profile#update_name"
  end
  namespace :project do
    resources :project, only: [:index, :show, :create, :update, :destroy]
