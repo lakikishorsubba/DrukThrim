@@ -5,27 +5,29 @@
 DrukThrim aims to empower citizens, students, and administrators by making public development data easier to understand and engage with.
 
 ---
+### Tech stack used
+* React native with expo 
+* Rails api
 
 ## Features Implemented
 
 ### Authentication & Security
 
-* [x] User registration (signup)
-* [x] User login & logout
-* [x] Secure authentication using token-based API access
-* [x] Password validation and error handling
+* User registration (signup)
+* User login & logout
+* Secure authentication using token-based API access
+* assword validation and error handling
 
 ### User Roles
 
-* [x] Role-based access control (e.g., Admin, Standard User)
-* [x] Controlled access to features based on user role
-* [ ] Scalable role system for future expansion
+* Role-based access control (e.g., Admin, Standard User)
+* Controlled access to features based on user role
 
 ### User Profile
 
-* [x] View user profile details
-* [x] Update personal information
-* [x] Profile data securely linked to authenticated users
+* View user profile details
+* Update personal information
+* Profile data securely linked to authenticated users
 
 ### Other features still in progress.........
 ---
