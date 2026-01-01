@@ -16,7 +16,7 @@ import React, { useEffect, useState } from "react";
 
 export default function Profile() {
   const router = useRouter();
-  const API_URL = "http://10.197.242.246:3000";
+  const API_URL = "http://10.80.192.246:3000";
 
   const [user, setUser] = useState<{
     name: string;

@@ -29,7 +29,7 @@ export default function SignupScreen() {
     server: "",
   });
 
-  const API_URL = "http://10.197.242.246:3000/signup";
+  const API_URL = "http://10.80.192.246:3000/signup";
 
   const validateForm = () => {
     let valid = true;
