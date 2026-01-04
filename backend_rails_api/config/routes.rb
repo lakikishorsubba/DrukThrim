@@ -20,7 +20,12 @@ Rails.application.routes.draw do
     patch "profile/avatar", to: "profile#update_avatar"
     patch "profile/name", to: "profile#update_name"
  end
+
  namespace :project do
    resources :project, only: [:index, :show, :create, :update, :destroy]
+ end
+ 
+ namespace :v1 do
+   resources :posts
  end
 end

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class User < ApplicationRecord
+  has_many :posts, foreign_key: :user_id, dependent: :destroy
   has_many :projects, foreign_key: :user_id
   has_one_attached :avatar
   include Devise::JWT::RevocationStrategies::JTIMatcher

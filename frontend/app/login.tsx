@@ -1,8 +1,15 @@
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
 import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+} from "react-native";
 import { useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
-import { Ionicons } from "@expo/vector-icons"; // 🔹 Added for eye icon
+import { Ionicons } from "@expo/vector-icons";
 
 interface FieldErrors {
   email: string;
@@ -17,8 +24,9 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({ email: "", password: "" });
+  const [showPassword, setShowPassword] = useState(false);
 
-  const [showPassword, setShowPassword] = useState(false); // 🔹 Added state for password toggle
+  const API_URL = "http://10.80.192.246:3000/login";
 
   const handleLogin = async () => {
     setErrors({ email: "", password: "" });
@@ -32,29 +40,27 @@ export default function LoginScreen() {
     }
 
     setLoading(true);
-
     try {
-      const res = await fetch("http://10.80.192.246:3000/login", {
+      const res = await fetch(API_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({ user: { email, password } }),
       });
 
-      let data: any;
+      let data;
       const contentType = res.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
+      if (contentType?.includes("application/json")) {
         data = await res.json();
       } else {
         const text = await res.text();
-        console.error("Server returned non-JSON response:", text);
+        console.error("Server returned non-JSON:", text);
         setErrors(prev => ({ ...prev, general: "Server returned invalid response" }));
         setLoading(false);
         return;
       }
 
-      setLoading(false);
-
       if (res.ok) {
+        // Extract JWT from header
         const token = res.headers.get("Authorization")?.split(" ").pop();
         if (token) {
           await SecureStore.setItemAsync("jwt_token", token);
@@ -76,9 +82,10 @@ export default function LoginScreen() {
         });
       }
     } catch (e) {
-      setLoading(false);
       console.error("Network error:", e);
       setErrors({ email: "", password: "", general: "Server not reachable" });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -100,13 +107,12 @@ export default function LoginScreen() {
       />
       {errors.email ? <Text style={styles.error}>{errors.email}</Text> : null}
 
-      {/* 🔹 Password input with toggle */}
       <View style={styles.passwordContainer}>
         <TextInput
           style={styles.passwordInput}
           placeholder="Password"
           placeholderTextColor="#888"
-          secureTextEntry={!showPassword} // 🔹 toggle
+          secureTextEntry={!showPassword}
           value={password}
           onChangeText={text => {
             setPassword(text);
@@ -125,13 +131,11 @@ export default function LoginScreen() {
         {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Login</Text>}
       </TouchableOpacity>
 
-      <View style={styles.toggleContainer}>
-        <TouchableOpacity onPress={() => router.push("/signup")}>
-          <Text style={styles.link}>
-            Not yet registered? <Text style={styles.linkUnderline}>Register</Text>
-          </Text>
-        </TouchableOpacity>
-      </View>
+      <TouchableOpacity onPress={() => router.push("/signup")}>
+        <Text style={styles.link}>
+          Not yet registered? <Text style={styles.linkUnderline}>Register</Text>
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -139,49 +143,13 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: "center", paddingHorizontal: 20, backgroundColor: "#fff" },
   title: { fontSize: 28, fontWeight: "700", marginBottom: 30, textAlign: "center" },
-  input: {
-    height: 48,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    marginBottom: 12,
-    fontSize: 16,
-    backgroundColor: "#f8f8f8",
-  },
+  input: { height: 48, borderWidth: 1, borderColor: "#ccc", borderRadius: 16, paddingHorizontal: 12, marginBottom: 12, fontSize: 16, backgroundColor: "#f8f8f8" },
   error: { color: "red", fontSize: 14, marginBottom: 12, marginLeft: 4 },
-
-  /* 🔹 Password container & input */
-  passwordContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    marginBottom: 12,
-    backgroundColor: "#f8f8f8",
-  },
-  passwordInput: {
-    flex: 1,
-    height: 48,
-    fontSize: 16,
-    color: "#000",
-  },
-  eyeIcon: {
-    padding: 6,
-  },
-
-  button: {
-    height: 48,
-    backgroundColor: "#007bff",
-    borderRadius: 16,
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 8,
-  },
+  passwordContainer: { flexDirection: "row", alignItems: "center", borderWidth: 1, borderColor: "#ccc", borderRadius: 16, paddingHorizontal: 12, marginBottom: 12, backgroundColor: "#f8f8f8" },
+  passwordInput: { flex: 1, height: 48, fontSize: 16, color: "#000" },
+  eyeIcon: { padding: 6 },
+  button: { height: 48, backgroundColor: "#007bff", borderRadius: 16, justifyContent: "center", alignItems: "center", marginTop: 8 },
   buttonText: { color: "#fff", fontSize: 18, fontWeight: "600" },
-  toggleContainer: { marginTop: 16, alignItems: "center" },
   link: { marginTop: 18, fontSize: 16, color: "#444", textAlign: "center" },
   linkUnderline: { color: "#007bff", textDecorationLine: "underline", fontWeight: "600" },
 });
