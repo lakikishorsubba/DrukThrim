@@ -18,12 +18,17 @@ import { useRouter } from "expo-router";
 
 /* 🔧 CONFIG */
 const API_URL = "http://10.80.192.246:3000/v1/posts";
+const PROFILE_URL = "http://10.80.192.246:3000/v1/profile";
 
 /* =======================
    🧩 TYPES
 ======================= */
 type ImageType = { id?: number; url?: string; uri?: string };
-type UserType = { id: number; name?: string };
+type UserType = {
+  id: number;
+  name?: string;
+  avatar_url?: string | null;
+};
 type PostType = {
   id: number;
   title?: string;
@@ -31,10 +36,10 @@ type PostType = {
   created_at: string;
   user?: UserType;
   images?: ImageType[];
-  avatar_url?: string;
 };
+
 /* =======================
-   📱 FEED SCREEN - FACEBOOK STYLE
+   📱 FEED SCREEN
 ======================= */
 export default function FeedScreen() {
   const router = useRouter();
@@ -47,6 +52,31 @@ export default function FeedScreen() {
   const [newImages, setNewImages] = useState<ImageType[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
+  const [currentUser, setCurrentUser] = useState<UserType | null>(null);
+
+  /* =======================
+     FETCH CURRENT USER PROFILE
+  ======================= */
+  const fetchProfile = async () => {
+    try {
+      const token = await SecureStore.getItemAsync("jwt_token");
+      if (!token) return router.replace("/login");
+
+      const res = await fetch(PROFILE_URL, {
+        headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+      });
+      if (!res.ok) return console.warn("Failed to fetch profile");
+
+      const data: UserType = await res.json();
+      setCurrentUser(data);
+    } catch (e) {
+      console.error("Profile fetch error:", e);
+    }
+  };
+
+  /* =======================
+     FETCH FEED
+  ======================= */
   const fetchFeed = async () => {
     setLoading(true);
     try {
@@ -57,6 +87,7 @@ export default function FeedScreen() {
         headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
       });
       if (!res.ok) return Alert.alert("Error fetching feed");
+
       const data: PostType[] = await res.json();
       setPosts(data);
     } catch (e) {
@@ -68,20 +99,29 @@ export default function FeedScreen() {
   };
 
   useEffect(() => {
+    fetchProfile();
     fetchFeed();
   }, []);
 
+  /* =======================
+     PICK IMAGES
+  ======================= */
   const pickImages = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) return Alert.alert("Permission required");
+
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsMultipleSelection: true,
       quality: 0.7,
     });
+
     if (!result.canceled) setNewImages((prev) => [...prev, ...result.assets]);
   };
 
+  /* =======================
+     SUBMIT NEW POST
+  ======================= */
   const submitPost = async () => {
     if (!newTitle && !newDescription && newImages.length === 0)
       return Alert.alert("Please add title, text, or images");
@@ -94,11 +134,17 @@ export default function FeedScreen() {
       const formData = new FormData();
       formData.append("title", newTitle);
       formData.append("description", newDescription);
+
       newImages.forEach((img, idx) =>
         formData.append("images[]", { uri: img.uri, name: `image_${idx}.jpg`, type: "image/jpeg" } as any)
       );
 
-      const res = await fetch(API_URL, { method: "POST", headers: { Authorization: `Bearer ${token}`, Accept: "application/json" }, body: formData });
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+        body: formData,
+      });
+
       if (res.ok) {
         Alert.alert("Post created!");
         setModalVisible(false);
@@ -118,23 +164,34 @@ export default function FeedScreen() {
     }
   };
 
+  /* =======================
+     RENDER POST
+  ======================= */
   const renderPost: React.ComponentProps<typeof FlatList<PostType>>["renderItem"] = ({ item }) => (
     <View style={styles.postCard}>
-      {/* Post Header */}
-     <View style={styles.postHeader}>
-  {item.user?.avatar_url ? (
-    <Image source={{ uri: item.user.avatar_url }} style={styles.avatar} />
-  ) : (
-    <View style={styles.avatar} /> // fallback gray circle
-  )}
-  <View style={{ marginLeft: 10 }}>
-    <Text style={styles.username}>{item.user?.name || `User #${item.user?.id}`}</Text>
-    <Text style={styles.time}>{new Date(item.created_at).toLocaleString()}</Text>
-  </View>
-</View>
+      <View style={styles.postHeader}>
+        {item.user?.avatar_url ? (
+          <Image source={{ uri: item.user.avatar_url }} style={styles.avatar} />
+        ) : (
+          <View style={[styles.avatar, styles.avatarPlaceholder]}>
+            <Text style={styles.avatarInitials}>
+              {item.user?.name
+                ? item.user.name
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")
+                    .slice(0, 2)
+                    .toUpperCase()
+                : "U"}
+            </Text>
+          </View>
+        )}
+        <View style={{ marginLeft: 10 }}>
+          <Text style={styles.username}>{item.user?.name || `User #${item.user?.id}`}</Text>
+          <Text style={styles.time}>{new Date(item.created_at).toLocaleString()}</Text>
+        </View>
+      </View>
 
-
-      {/* Post Content */}
       {item.title && <Text style={styles.postTitle}>{item.title}</Text>}
       {item.description && <Text style={styles.postText}>{item.description}</Text>}
 
@@ -149,7 +206,6 @@ export default function FeedScreen() {
         />
       )}
 
-      {/* Action Buttons */}
       <View style={styles.postActions}>
         <TouchableOpacity style={styles.actionButton}>
           <Text style={styles.actionText}>👍 Like</Text>
@@ -209,7 +265,11 @@ export default function FeedScreen() {
           renderItem={renderPost}
           ListHeaderComponent={
             <TouchableOpacity style={styles.createBox} onPress={() => setModalVisible(true)}>
-              <View style={styles.avatar} />
+              {currentUser?.avatar_url ? (
+                <Image source={{ uri: currentUser.avatar_url }} style={styles.avatar} />
+              ) : (
+                <View style={styles.avatar} />
+              )}
               <Text style={styles.placeholderText}>What's on your mind?</Text>
             </TouchableOpacity>
           }
@@ -221,11 +281,13 @@ export default function FeedScreen() {
 }
 
 /* =======================
-   🎨 FACEBOOK-LIKE STYLES
+   🎨 STYLES
 ======================= */
 const styles = StyleSheet.create({
   createBox: { flexDirection: "row", alignItems: "center", backgroundColor: "#fff", padding: 12, margin: 12, borderRadius: 12, shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 8, elevation: 3 },
-  avatar: { width: 40, height: 40, backgroundColor: "#DDD", borderRadius: 20 },
+  avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: "#DDD" },
+  avatarPlaceholder: { backgroundColor: "#AAA", justifyContent: "center", alignItems: "center" },
+  avatarInitials: { color: "#fff", fontWeight: "700" },
   placeholderText: { color: "#999", marginLeft: 12, fontSize: 14 },
   postCard: { backgroundColor: "#fff", marginHorizontal: 12, marginVertical: 6, borderRadius: 12, padding: 12, shadowColor: "#000", shadowOpacity: 0.03, shadowRadius: 8, elevation: 2 },
   postHeader: { flexDirection: "row", alignItems: "center", marginBottom: 8 },

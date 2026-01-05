@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  get "hello/hello"
+  get "hello/hellos"
   resources :projects, only: [:index, :create, :update, :destroy]
   
   devise_for :users, path: '', path_names: {

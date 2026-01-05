@@ -1,9 +1,9 @@
 class V1::PostsController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_post, only: [:update, :destroy]  # removed :show
+  before_action :set_post, only: [:update, :destroy]
 
   def index
-    posts = Post.includes(images_attachments: :blob).order(created_at: :desc)
+    posts = Post.includes(:user, images_attachments: :blob).order(created_at: :desc)
     render json: posts.map { |p| serialized_post(p) }
   end
 
@@ -16,20 +16,20 @@ class V1::PostsController < ApplicationController
       render json: { errors: post.errors.full_messages }, status: :unprocessable_entity
     end
   end
+
   def update
-  if @post.update(post_params)
-    attach_images(@post)
-    render json: serialized_post(@post)
-  else
-    render json: { errors: @post.errors.full_messages }, status: :unprocessable_entity
-  end
+    if @post.update(post_params)
+      attach_images(@post)
+      render json: serialized_post(@post)
+    else
+      render json: { errors: @post.errors.full_messages }, status: :unprocessable_entity
+    end
   end
 
-def destroy
-  @post.destroy
-  head :no_content
-end
-
+  def destroy
+    @post.destroy
+    head :no_content
+  end
 
   private
 
@@ -46,13 +46,18 @@ end
     post.images.attach(params[:images])
   end
 
+  # avatar_url
   def serialized_post(post)
     {
       id: post.id,
       title: post.title,
       description: post.description,
       images: post.images.map { |img| { id: img.id, url: Rails.application.routes.url_helpers.rails_blob_url(img, only_path: false) } },
-      user: { id: post.user.id, name: post.user.name },
+      user: {
+        id: post.user.id,
+        name: post.user.name,
+        avatar_url: post.user.avatar.attached? ? Rails.application.routes.url_helpers.rails_blob_url(post.user.avatar, only_path: false) : nil
+      },
       created_at: post.created_at
     }
   end
